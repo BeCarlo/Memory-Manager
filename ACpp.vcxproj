@@ -128,13 +128,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FreeList.h" />
     <ClCompile Include="RedBlackTree.cpp" />
-    <ClCompile Include="RedBlackTree.h" />
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="SmallObjectAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MemoryManager.h" />
+    <ClCompile Include="RedBlackTree.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

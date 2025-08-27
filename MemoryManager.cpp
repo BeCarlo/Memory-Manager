@@ -1,16 +1,15 @@
 #include "MemoryManager.h"
 #include <exception>
 #include <iostream>
-#include "RedBlackTree.h"
 
-static SmallObjAllocator sObjAlloc = SmallObjAllocator(MAX_SMALL_OBJECT_SIZE);
-static RedBlackTree rbTree = RedBlackTree();
+static SmallObjAllocator sObjAlloc = SmallObjAllocator(SMALL_OBJECT_SIZE);
+
 
 void* my_allocate(std::size_t size) {
 	if (size == 0llu) ++size;
 
-	if (size > MAX_SMALL_OBJECT_SIZE) {
-		if (void* ptr = rbTree.insert(size)) return ptr;
+	if (size > SMALL_OBJECT_SIZE) {
+		if (void* ptr = malloc(size)) return ptr;
 
 		throw std::exception("bad allocation", 1);
 	}
@@ -19,7 +18,7 @@ void* my_allocate(std::size_t size) {
 }
 
 void my_deallocate(void* ptr) {
-	if (rbTree.remove(ptr)) return;
+
 
 	sObjAlloc.Deallocate(ptr);
 }

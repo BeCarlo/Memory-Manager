@@ -1,7 +1,7 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#define MAX_SMALL_OBJECT_SIZE 255llu
+#define SMALL_OBJECT_SIZE 255llu
 
 #include "SmallObjectAllocator.h"
 
@@ -21,4 +21,3 @@ struct CustomMenoryManager {
 #define CUSTOMMEMORY : public CustomMenoryManager
 
 #endif // !MEMORY_MANAGER_H
-

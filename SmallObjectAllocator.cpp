@@ -39,8 +39,6 @@ void Chunk::Deallocate(void* ptr, const size_t blockSize) {
 
 	unsigned char* ptrInChar = (unsigned char*)ptr;
 
-	*ptrInChar = _firstAvailableBlock;
-
 	_firstAvailableBlock = (unsigned char) ((ptrInChar - _dataPtr) / blockSize);
 
 }
@@ -53,12 +51,12 @@ bool Chunk::isEmpty(const unsigned char blocks) const {
 	return _blocksAvailable == blocks;
 }
 
-FixedAllocator::FixedAllocator(const size_t blockSize, const size_t maxChunkSize, const unsigned char maxBlockPerChunk) {
+FixedAllocator::FixedAllocator(const size_t blockSize, const unsigned char blockPerChunk) {
 
 	_blockSize = blockSize;
-	Chunk newChunk(_blockSize, getNumberOfBlocks(maxChunkSize, maxBlockPerChunk));
+	Chunk newChunk(_blockSize, blockPerChunk);
 	_chunks.push_back(newChunk);
-	_lastAllocatedChunk = &_chunks[0];
+	_lastAllocatedChunk = &_chunks.front();
 }
 
 FixedAllocator::~FixedAllocator() {
@@ -66,7 +64,7 @@ FixedAllocator::~FixedAllocator() {
 	free(_lastDeallocationChunk);
 }
 
-void* FixedAllocator::Allocate(const size_t maxChunkSize, const unsigned char maxBlockPerChunk) {
+void* FixedAllocator::Allocate(const unsigned char blockPerChunk) {
 	//try to fill the last chunk that recive a deallocation
 	if (_lastDeallocationChunk != nullptr) {
 		void* allocation = _lastDeallocationChunk->Allocate(_blockSize);
@@ -81,38 +79,50 @@ void* FixedAllocator::Allocate(const size_t maxChunkSize, const unsigned char ma
 		return allocation;
 	}
 
-	//check if a chunk is free
-	for (Chunk chunk : _chunks) {
+	for (auto riter = _chunks.rbegin();
+		riter != _chunks.rend(); ++riter) {
+		auto chunk = *riter;
 		if (&chunk == _lastDeallocationChunk || &chunk == _lastAllocatedChunk) continue;
 
 		void* allocation = chunk.Allocate(_blockSize);
+
+		if (allocation != nullptr) {
+			return allocation;
+		}
+	}
+
+	//check if a chunk is free
+	/*for (Chunk chunk : _chunks) {
+		if (&chunk == _lastDeallocationChunk || &chunk == _lastAllocatedChunk) continue;
+
+		void* allocation = chunk.Allocate(_blockSize);
+
 		if (allocation != nullptr) {
 			return allocation;
 		}
 
-	}
+	}*/
 
 	//create new chunk
-	Chunk newChunk(_blockSize, getNumberOfBlocks(maxChunkSize, maxBlockPerChunk));
+	Chunk newChunk(_blockSize, blockPerChunk);
 	_chunks.push_back(newChunk);
 	_lastAllocatedChunk = &_chunks.back();
 
 	return _lastAllocatedChunk->Allocate(_blockSize);
 }
 
-bool FixedAllocator::Deallocate(void* ptr, const size_t maxChunkSize, const unsigned char maxBlockPerChunk) {
+bool FixedAllocator::Deallocate(void* ptr, const unsigned char blockPerChunk) {
 	unsigned char i = 0;
 	for (unsigned char i = 0; i < _chunks.size(); ++i) {
 		Chunk* chunk = &_chunks[i];
-
-		unsigned char blocks = getNumberOfBlocks(maxChunkSize, maxBlockPerChunk);
-		if (chunk->Start() > ptr || chunk->Start() + (_blockSize * blocks) < ptr) continue;
+;
+		if (chunk->Start() > ptr || chunk->Start() + (_blockSize * blockPerChunk) < ptr) continue;
 
 		chunk->Deallocate(ptr, _blockSize);
 
 		_lastDeallocationChunk = chunk;
 
-		if (chunk->isEmpty(blocks) && _chunks.size() != 1) {
+		if (chunk->isEmpty(blockPerChunk) && _chunks.size() != 1) {
 			_chunks.erase(_chunks.begin() + i);
 			chunk->Release();
 			_lastAllocatedChunk = &_chunks.back();
@@ -124,12 +134,6 @@ bool FixedAllocator::Deallocate(void* ptr, const size_t maxChunkSize, const unsi
 	return false;
 }
 
-unsigned char FixedAllocator::getNumberOfBlocks(const size_t maxChunkSize, const unsigned char maxBlockPerChunk) const {
-	unsigned char possibleBlocks = (unsigned char) (maxChunkSize / _blockSize);
-	char tooMuchBlocks = possibleBlocks > maxBlockPerChunk;
-	return possibleBlocks * !tooMuchBlocks + maxBlockPerChunk * tooMuchBlocks;
-}
-
 
 size_t power(int a, int b) {
 	size_t result = 1;
@@ -137,25 +141,23 @@ size_t power(int a, int b) {
 	return result;
 }
 
-SmallObjAllocator::SmallObjAllocator(size_t maxSmallObjectAllocation) {
-	_maxChunkSize *= maxSmallObjectAllocation;
+SmallObjAllocator::SmallObjAllocator(size_t smallObjectAllocation) {
 
-	int nearestExponent = getIndex(maxSmallObjectAllocation);
+	int nearestExponent = getIndex(smallObjectAllocation);
 
 	for (int i = 0; i <= nearestExponent; ++i) {
 		size_t blockSize = power(2, i);
-		_pool.push_back(new FixedAllocator(blockSize, _maxChunkSize, _maxBlockPerChunk));
+		_pool.push_back(new FixedAllocator(blockSize, _blockPerChunk));
 	}
-
 }
 
 void* SmallObjAllocator::Allocate(size_t numBytes) {
-	return _pool[getIndex(numBytes)]->Allocate(_maxChunkSize, _maxBlockPerChunk);
+	return _pool[getIndex(numBytes)]->Allocate(_blockPerChunk);
 }
 
 void SmallObjAllocator::Deallocate(void* ptr) {
 	for (FixedAllocator* fa : _pool) {
-		if (fa->Deallocate(ptr, _maxChunkSize, _maxBlockPerChunk)) break;
+		if (fa->Deallocate(ptr, _blockPerChunk)) break;
 	}
 }
 

@@ -21,11 +21,17 @@
     <ClCompile Include="SmallObjectAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RedBlackTree.h">
+    <ClCompile Include="FreeList.h">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RedBlackTree.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RedBlackTree.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

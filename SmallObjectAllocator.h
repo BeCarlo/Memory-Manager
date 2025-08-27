@@ -29,25 +29,21 @@ class FixedAllocator {
 	Chunk* _lastDeallocationChunk = nullptr;
 
 public:
-	FixedAllocator(const size_t blockSize, const size_t maxChunkSize, const unsigned char maxBlockPerChunk);
+	FixedAllocator(const size_t blockSize, const unsigned char _blockPerChunk);
 	~FixedAllocator();
-	void* Allocate(const size_t maxChunkSize, const unsigned char maxBlockPerChunk);
-	bool Deallocate(void* ptr, const size_t maxChunkSize, const unsigned char maxBlockPerChunk);
-
-	unsigned char getNumberOfBlocks(const size_t maxChunkSize, const unsigned char maxBlockPerChunk) const;
+	void* Allocate(const unsigned char blockPerChunk);
+	bool Deallocate(void* ptr, const unsigned char blockPerChunk);
 };
 
 class SmallObjAllocator {
 
 	std::vector<FixedAllocator*> _pool;
-	//this 4 means the quadruple size of maxSmallObjectAllocation
-	//on class construction the constructor calculate it
-	size_t _maxChunkSize = 4llu;
-	unsigned char _maxBlockPerChunk = 100llu;
+
+	const unsigned char _blockPerChunk = 255llu;
 
 
 public:
-	SmallObjAllocator(size_t maxSmallObjectAllocation);
+	SmallObjAllocator(size_t smallObjectAllocation);
 	void* Allocate(size_t numBytes);
 	void Deallocate(void* p);
 
