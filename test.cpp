@@ -19,6 +19,18 @@ public:
 	int GetC() { return c; }
 };
 
+
+class BigObject CUSTOMMEMORY  {
+public:
+	char data[300] = {5};
+	BigObject() = default;
+};
+
+class NormalBigObject CUSTOMMEMORY {
+public:
+	char data[300];
+};
+
 class NormalObject {
 public:
 	int a;
@@ -110,15 +122,32 @@ void BulkTestWithSystem(int iterations)
 	std::cout << "allocatore di sistema  Alloc-Dealloc Massiva di " << iterations << " iterazioni : " << duration.count() / 1000000.000000 << " secondi" << std::endl;
 }
 
+void TestBig() {
+	std::vector<BigObject*> objects;
+	objects.reserve(10);
+	auto start = std::chrono::high_resolution_clock::now();
+
+	for (int i = 0; i < 10; ++i) {
+		objects.push_back(new BigObject);
+	}
+	for (auto* obj : objects) {
+		delete obj;
+	}
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+	std::cout << "allocatore di sistema  Alloc-Dealloc Massiva di " << 10 << " iterazioni : " << duration.count() / 1000000.000000 << " secondi" << std::endl;
+}
+
 
 int main()
 {
 
-	int ordine = 1000 * 1000;
-	int numIterazioni = 4 * ordine;
-	TestWithLocalSmallObject(numIterazioni);
+	int ordine = 10 * 10;
+	int numIterazioni = 1 * ordine;
+	//TestWithLocalSmallObject(numIterazioni);
 	TestWithoutLocalSmallObject(numIterazioni);
 
 	BulkTestWithSmallObject(numIterazioni);
 	BulkTestWithSystem(numIterazioni);
+	TestBig();
 }

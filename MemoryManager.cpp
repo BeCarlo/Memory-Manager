@@ -3,13 +3,15 @@
 #include <iostream>
 
 static SmallObjAllocator sObjAlloc = SmallObjAllocator(SMALL_OBJECT_SIZE);
+static FreeList freeList = FreeList(1024 * 1024 * 1024);
 
 
 void* my_allocate(std::size_t size) {
 	if (size == 0llu) ++size;
 
 	if (size > SMALL_OBJECT_SIZE) {
-		if (void* ptr = malloc(size)) return ptr;
+
+		if (void* ptr = freeList.Allocate(size)) return ptr;
 
 		throw std::exception("bad allocation", 1);
 	}

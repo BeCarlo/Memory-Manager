@@ -20,4 +20,6 @@ struct CustomMenoryManager {
 
 #define CUSTOMMEMORY : public CustomMenoryManager
 
+#include "FreeList.h"
+
 #endif // !MEMORY_MANAGER_H

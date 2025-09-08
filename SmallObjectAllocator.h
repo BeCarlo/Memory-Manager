@@ -39,7 +39,7 @@ class SmallObjAllocator {
 
 	std::vector<FixedAllocator*> _pool;
 
-	const unsigned char _blockPerChunk = 255llu;
+	const unsigned char _blockPerChunk = 10llu;
 
 
 public:
