@@ -13,7 +13,7 @@ enum NodePosition : bool {
 	RIGHT
 };
 
-template<class TypeToSort, class... Types>
+template<typename TypeToSort, class... Types>
 class TNode {
 protected:
 	TypeToSort _dataToSort;

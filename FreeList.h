@@ -31,12 +31,12 @@ struct NodeForFreeList : public TNode<size_t, void*> {
 
 struct BlackRedTreeForFreeList;
 
-template<> class TRedBlackTree<NodeForFreeList> {
+template<> class TRedBlackTree<NodeForFreeList, void*> {
 	NodeForFreeList* _root = nullptr;
 	friend struct BlackRedTreeForFreeList;
 };
 
-struct BlackRedTreeForFreeList : public TRedBlackTree<NodeForFreeList> {
+struct BlackRedTreeForFreeList : public TRedBlackTree<NodeForFreeList, void*> {
 
 	void split(NodeForFreeList* node, size_t size);
 

@@ -2,18 +2,18 @@
 
 #include <assert.h> 
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 TRedBlackTree<TypeToSort, Types...>::TRedBlackTree(const TypeToSort& dataToSort, const Types&... otherData) {
 	_root = new TNode<TypeToSort, Types...>(dataToSort, otherData...);
 	_root->color = BLACK;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 TRedBlackTree<TypeToSort, Types...>::~TRedBlackTree() {
 	deleteAll(_root);
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline TNode<TypeToSort, Types...>* TRedBlackTree<TypeToSort, Types...>::insert(const TypeToSort& dataToSort, const Types & ...otherData) {
 
 	TNode<TypeToSort, Types...>* newNode = new TNode<TypeToSort, Types...>(dataToSort, otherData...);
@@ -39,7 +39,7 @@ __forceinline TNode<TypeToSort, Types...>* TRedBlackTree<TypeToSort, Types...>::
 	if (newNode->parent->color == RED) fixInsertViolation(newNode);
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline TNode<TypeToSort, Types...>* TRedBlackTree<TypeToSort, Types...>::search(const TypeToSort& data) {
 
 	if (data == nullptr) return nullptr;
@@ -58,7 +58,7 @@ __forceinline TNode<TypeToSort, Types...>* TRedBlackTree<TypeToSort, Types...>::
 	return currentNode;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline std::tuple<Types...> TRedBlackTree<TypeToSort, Types...>::remove(const TypeToSort data) {
 	TNode<TypeToSort, Types...>* node = search(data);
 	TNode<TypeToSort, Types...>* replaceNode = node;
@@ -119,7 +119,7 @@ __forceinline std::tuple<Types...> TRedBlackTree<TypeToSort, Types...>::remove(c
 	return returnTuple;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline void TRedBlackTree<TypeToSort, Types...>::rotation(TNode<TypeToSort, Types...>* node, const BRTRotationDirection rotation) {
 	const BRTRotationDirection oppositeRotation = !rotation;
 
@@ -148,7 +148,7 @@ __forceinline void TRedBlackTree<TypeToSort, Types...>::rotation(TNode<TypeToSor
 	secondNode->childs[rotation] = node;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline void TRedBlackTree<TypeToSort, Types...>::fixInsertViolation(const TNode<TypeToSort, Types...>* node) {
 	assert(nullptr != node);
 
@@ -180,7 +180,7 @@ __forceinline void TRedBlackTree<TypeToSort, Types...>::fixInsertViolation(const
 	_root->color = BLACK;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline void TRedBlackTree<TypeToSort, Types...>::fixRemoveViolation(const TNode<TypeToSort, Types...>* node) {
 	assert(nullptr != node);
 
@@ -239,7 +239,7 @@ __forceinline void TRedBlackTree<TypeToSort, Types...>::fixRemoveViolation(const
 	if (currentNode != nullptr) currentNode->color = BLACK;
 }
 
-template<class TypeToSort, class ...Types>
+template<typename TypeToSort, class ...Types>
 __forceinline void TRedBlackTree<TypeToSort, Types...>::deleteAll(TNode<TypeToSort, Types...>* node) {
 	if (node->childs[LEFT] != nullptr) deleteAll(node->childs[LEFT]);
 	if (node->childs[RIGHT] != nullptr) deleteAll(node->childs[RIGHT]);

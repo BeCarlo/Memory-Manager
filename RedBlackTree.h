@@ -6,7 +6,7 @@
 
 typedef NodePosition BRTRotationDirection;
 
-template<class TypeToSort, class... Types>
+template<typename TypeToSort, class... Types>
 class TRedBlackTree {
 	TNode<TypeToSort, Types...>* _root = nullptr;
 
