@@ -21,6 +21,7 @@ void* my_allocate(std::size_t size) {
 
 void my_deallocate(void* ptr) {
 
+	if (freeList.Deallocate(ptr)) return;
 
 	sObjAlloc.Deallocate(ptr);
 }

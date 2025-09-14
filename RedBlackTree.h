@@ -1,98 +1,31 @@
-#ifndef BLACKREDTREE_H
-#define BLACKREDTREE_H
+#ifndef BLACK_RED_TREE_H
+#define BLACK_RED_TREE_H
 
-#define MIN_SPLIT 255llu
 
-enum RedBlackTreeColor {
-	BLACK,
-	RED
-};
+#include "BRTreeNode.h"
 
-enum NodePosition {
-	LEFT,
-	RIGHT
-};
+typedef NodePosition BRTRotationDirection;
 
-class Node {
-protected:
-	size_t _dataSize = 0;
-	void* _dataPtr = nullptr;
+template<class TypeToSort, class... Types>
+class TRedBlackTree {
+	TNode<TypeToSort, Types...>* _root = nullptr;
 
 public:
+	TRedBlackTree() = default;
+	TRedBlackTree(const TypeToSort& dataToSort, const Types&... otherData);
+	~TRedBlackTree();
 
-	Node* leftListNode = nullptr;
-	Node* rightListNode = nullptr;
-
-	RedBlackTreeColor color = RED;
-
-	Node* parent = nullptr;
-	Node* childs[2] = { nullptr, nullptr };
-	
-	bool isFree = true;
-
-	Node(const size_t data);
-	Node(void* ptr);
-	Node(const size_t data, void* ptr);
-
-	inline int howManyChilds() const;
-	inline bool hasChilds() const;
-
-	void* getPtr() const;
-
-	size_t getSize() const;
-	void setSize(const size_t size);
-
-	bool wouldJoin();
-	bool leftListNodeIsFree();
-	bool rightListNodeIsFree();
-
-	void leftJoin();
-	void rightJoin();
-
-	void split(Node* rightNone);
-
-	Node* getSibling(const Node* node);
-	NodePosition getNodePosition(const Node* node);
-
-	Node* getListNode(NodePosition position);
-
-	bool operator ==(Node node);
-	bool operator >(Node node);
-	bool operator <(Node node);
-	bool operator <=(Node node);
-	bool operator >=(Node node);
-
-	bool operator ==(size_t size);
-	bool operator >(size_t size);
-	bool operator <(size_t size);
-	bool operator <=(size_t size);
-	bool operator >=(size_t size);
-};
-
-class RedBlackTree {
-private:
-	Node* root = nullptr;
-
-public:
-	void* insert(const size_t size);
-	void rotation(Node* node, NodePosition rotation);
-	Node* search(void* ptr);
-	bool remove(void* ptr);
-	RedBlackTree() = default;
-	RedBlackTree(void* startPtr, size_t size);
-	~RedBlackTree();
+	__forceinline TNode<TypeToSort, Types...>* insert(const TypeToSort& dataToSort, const Types&... otherData);
+	__forceinline TNode<TypeToSort, Types...>* search(const TypeToSort& data);
+	__forceinline std::tuple<Types...> remove(const TypeToSort data);
 
 private:
-	void fixInsertViolation(Node* node);
-	void fixRemoveViolation(Node* node);
+	__forceinline void rotation(TNode<TypeToSort, Types...>* node, const BRTRotationDirection rotation);
 
-	void remove(Node* node);
+	__forceinline void fixInsertViolation(const TNode<TypeToSort, Types...>* node);
+	__forceinline void fixRemoveViolation(const TNode<TypeToSort, Types...>* node);
 
-
-	void insertFreeNode(Node* node);
-	void split(Node* node, size_t size);
-
-	void deleteAll(Node* node);
+	__forceinline void deleteAll(TNode<TypeToSort, Types...>* node);
 };
 
-#endif // !BLACKREDTREE_H
+#endif // !BLACK_RED_TREE_H

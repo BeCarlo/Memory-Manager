@@ -27,13 +27,25 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RedBlackTree.cpp">
+    <ClCompile Include="RedBlackTree2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RedBlackTree.h">
+    <ClCompile Include="RedBlackTree2.h">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="FreeList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SecondTree.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SecondTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BRTreeNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RedBlackTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,6 +54,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SmallObjectAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BRTreeNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RedBlackTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -130,14 +130,20 @@
   <ItemGroup>
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="FreeList.h" />
+    <ClCompile Include="BRTreeNode.cpp" />
     <ClCompile Include="RedBlackTree.cpp" />
+    <ClCompile Include="RedBlackTree2.cpp" />
+    <ClCompile Include="SecondTree.cpp" />
+    <ClCompile Include="SecondTree.h" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="SmallObjectAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MemoryManager.h" />
-    <ClCompile Include="RedBlackTree.h" />
+    <ClCompile Include="RedBlackTree2.h" />
+    <ClInclude Include="BRTreeNode.h" />
+    <ClInclude Include="RedBlackTree.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
