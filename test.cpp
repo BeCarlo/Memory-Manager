@@ -3,7 +3,6 @@
 #include <vector>
 #include "MemoryManager.h"
 
-
 class CustomObject CUSTOMMEMORY {
 
 public:
@@ -22,21 +21,21 @@ public:
 
 class BigObject {
 public:
-	char data[2000] = { 5 };
+	char data[4000] = { 5 };
 	BigObject() = default;
 };
 
 class CustomBigObject : public BigObject {
 public:
-	static void* operator new(size_t sz) {
+	void* operator new(size_t sz) {
 		if (void* ptr = my_allocate(sz))
 			return ptr;
 
 		throw std::bad_alloc{};
 	}
-	static void* operator new[](size_t sz) { return operator new(sz); }
-	static void operator delete(void* ptr) { my_deallocate(ptr); }
-	static void operator delete[](void* ptr) {
+	void* operator new[](size_t sz) { return operator new(sz); }
+	void operator delete(void* ptr) { my_deallocate(ptr); }
+	void operator delete[](void* ptr) {
 		operator delete(ptr);
 	}
 };
@@ -105,7 +104,7 @@ void BulkTestWithSmallObject(int iterations)
 
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-	std::cout << "SMALL OBJECT ALLOCATOR  Alloc-Dealloc Massiva di " << iterations << " iterazioni: " << duration.count() / 1000000.000000 << " secondi" << std::endl;
+	std::cout << "SMALL OBJECT ALLOCATOR Alloc+Dealloc Massiva di " << iterations << " iterazioni: " << duration.count() / 1000000.000000 << " secondi" << std::endl;
 }
 
 void BulkTestWithSystem(int iterations)
@@ -172,13 +171,14 @@ int _global_variable = 1;
 
 int main()
 {
-	int ordine = 10 * 10;
-	int numIterazioni = 1000 * ordine;
+	int ordine = 1 * 1;
+	int numIterazioni = 10 * ordine + 1;
+	int numInterazioniBig = 100 * ordine;
 	//TestWithLocalSmallObject(numIterazioni);
 	//TestWithoutLocalSmallObject(numIterazioni);
 
-	//BulkTestWithSmallObject(numIterazioni);
-	//BulkTestWithSystem(numIterazioni);
-	//TestBig(numIterazioni);
-	//TestBigNormal(numIterazioni);
+	BulkTestWithSmallObject(numIterazioni);
+	BulkTestWithSystem(numIterazioni);
+	TestBig(numInterazioniBig);
+	TestBigNormal(numInterazioniBig);
 }

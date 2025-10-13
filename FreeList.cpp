@@ -23,7 +23,7 @@ bool NodeForFreeList::listNodeIsFree(NodePosition position) const
 void NodeForFreeList::join(Direction direction) {
 	if (!listNodeIsFree(direction)) return;
 	NodeForFreeList* nodeToDelete = listNode[direction];
-	if (direction == LEFT) _dataTuple = nodeToDelete->_dataTuple;
+	if (direction == LEFT) _otherData = nodeToDelete->_otherData;
 	_dataToSort += nodeToDelete->_dataToSort;
 	listNode[direction] = nodeToDelete->listNode[direction];
 	if (listNode[direction] != nullptr)
@@ -32,10 +32,18 @@ void NodeForFreeList::join(Direction direction) {
 }
 
 void NodeForFreeList::split(NodeForFreeList* node) {
-	node->_dataTuple = (char*)std::get<void*>(_dataTuple) + _dataToSort;
+	node->_otherData = (char*)(_otherData)+_dataToSort;
 	node->listNode[LEFT] = this;
 	node->listNode[RIGHT] = listNode[RIGHT];
 	listNode[RIGHT] = node;
+}
+
+bool NodeForFreeList::operator>=(const NodeForFreeList* node) const {
+	return _dataToSort >= node->_dataToSort;
+}
+
+bool NodeForFreeList::operator>=(const size_t& data) const {
+	return _dataToSort >= data;
 }
 
 
@@ -56,12 +64,12 @@ void BlackRedTreeForFreeList::insertFreeNode(NodeForFreeList* node) {
 	NodePosition currentNodePosition = LEFT;
 
 	//binary inserction
+
 	while (currentNode != nullptr) {
 		node->parent = currentNode;
-		currentNodePosition = (NodePosition)(*node >= currentNode);
+		currentNodePosition = (NodePosition)(*currentNode < node);
 		currentNode = currentNode->childs[currentNodePosition];
 	}
-
 
 	if (node->parent == nullptr) {
 		_root = node;
@@ -71,12 +79,7 @@ void BlackRedTreeForFreeList::insertFreeNode(NodeForFreeList* node) {
 
 	node->parent->childs[currentNodePosition] = node;
 
-	if (node->parent->color == RED) {
-		fixInsertViolation(node);
-		return;
-	}
-
-	if (_root == nullptr) _root = node;
+	fixInsertViolation(node);
 }
 
 void BlackRedTreeForFreeList::fixInsertViolation(NodeForFreeList* node) {
@@ -87,6 +90,7 @@ void BlackRedTreeForFreeList::fixInsertViolation(NodeForFreeList* node) {
 	NodeForFreeList* currentNode = node;
 
 	while (currentNode != _root && currentNode->parent->color == RED) {
+
 		NodeForFreeList* grandparent = currentNode->parent->parent;
 		NodeForFreeList* uncle = grandparent->getSibling(currentNode->parent);
 		NodePosition parentPosition = grandparent->getNodePosition(currentNode->parent);
@@ -94,7 +98,8 @@ void BlackRedTreeForFreeList::fixInsertViolation(NodeForFreeList* node) {
 
 		if (uncle == nullptr || uncle->color == BLACK) {
 			if (currentNode->parent->getNodePosition(currentNode) == oppositeParentPosition) {
-				rotation(currentNode->parent, (BRTRotationDirection)parentPosition);
+				currentNode = currentNode->parent;
+				rotation(currentNode, (BRTRotationDirection)parentPosition);
 			}
 			currentNode->parent->color = BLACK;
 			grandparent->color = RED;
@@ -111,62 +116,45 @@ void BlackRedTreeForFreeList::fixInsertViolation(NodeForFreeList* node) {
 }
 
 void BlackRedTreeForFreeList::fixRemoveViolation(NodeForFreeList* node) {
-	assert(nullptr != node);
+	assert(node != nullptr);
 
 	NodeForFreeList* currentNode = node;
-	while (currentNode != nullptr && currentNode->parent != nullptr && currentNode->color == BLACK) {
-		NodeForFreeList* curretNodeSibling = currentNode->parent->getSibling(currentNode);
+	while (currentNode != nullptr && currentNode != _root && currentNode->color == BLACK) {
 		NodePosition currentNodePosition = currentNode->parent->getNodePosition(currentNode);
-		NodePosition oppositePosition = (NodePosition)(currentNodePosition == LEFT);
+		NodePosition siblingPosition = (NodePosition)(currentNodePosition == LEFT);
+		NodeForFreeList* sibling = currentNode->parent->childs[siblingPosition];
 
-		// Fix: handle nullptr sibling as black
-		if (curretNodeSibling == nullptr) {
-			currentNode = currentNode->parent;
-			continue;
-		}
-
-		if (curretNodeSibling->color == RED) {
-			curretNodeSibling->color = BLACK;
+		if (sibling->color == RED) {
+			sibling->color = BLACK;
 			currentNode->parent->color = RED;
-			rotation(currentNode->parent, currentNodePosition);
-			curretNodeSibling = currentNode->parent->childs[oppositePosition];
-			if (curretNodeSibling == nullptr) {
-				currentNode = currentNode->parent;
-				continue;
-			}
+			rotation(currentNode->parent, (BRTRotationDirection)currentNodePosition);
+			sibling = currentNode->parent->childs[siblingPosition];
 		}
 
-		bool isLeftChildBlack = curretNodeSibling->childs[LEFT] == nullptr || curretNodeSibling->childs[LEFT]->color == BLACK;
-		bool isRightChildBlack = curretNodeSibling->childs[RIGHT] == nullptr || curretNodeSibling->childs[RIGHT]->color == BLACK;
-		if (curretNodeSibling->howManyChilds() == 0 || (isLeftChildBlack && isRightChildBlack)) {
-			curretNodeSibling->color = RED;
+		bool isLeftChildBlack = !sibling->childs[LEFT] || sibling->childs[LEFT]->color == BLACK;
+		bool isRightChildBlack = !sibling->childs[RIGHT] || sibling->childs[RIGHT]->color == BLACK;
+
+		if (isLeftChildBlack && isRightChildBlack) {
+			sibling->color = RED;
 			currentNode = currentNode->parent;
-			continue;
 		}
-
-		if (curretNodeSibling->childs[oppositePosition] == nullptr ||
-			curretNodeSibling->childs[oppositePosition]->color == BLACK) {
-
-			if (curretNodeSibling->childs[currentNodePosition] != nullptr)
-				curretNodeSibling->childs[currentNodePosition]->color = BLACK;
-
-			curretNodeSibling->color = RED;
-			rotation(curretNodeSibling, oppositePosition);
-			curretNodeSibling = currentNode->parent->childs[oppositePosition];
-			if (curretNodeSibling == nullptr) {
-				currentNode = currentNode->parent;
-				continue;
+		else {
+			if (!sibling->childs[siblingPosition] || sibling->childs[siblingPosition]->color == BLACK) {
+				if (sibling->childs[currentNodePosition])
+					sibling->childs[currentNodePosition]->color = BLACK;
+				sibling->color = RED;
+				rotation(sibling, (BRTRotationDirection)siblingPosition);
+				sibling = currentNode->parent->childs[siblingPosition];
 			}
+			sibling->color = currentNode->parent->color;
+			currentNode->parent->color = BLACK;
+			if (sibling->childs[siblingPosition])
+				sibling->childs[siblingPosition]->color = BLACK;
+			rotation(currentNode->parent, (BRTRotationDirection)currentNodePosition);
+			currentNode = _root;
 		}
-
-		curretNodeSibling->color = currentNode->parent->color;
-		currentNode->parent->color = BLACK;
-		if (curretNodeSibling->childs[oppositePosition] != nullptr)
-			curretNodeSibling->childs[oppositePosition]->color = BLACK;
-		rotation(currentNode->parent, currentNodePosition);
-		currentNode = _root;
 	}
-	if (currentNode != nullptr) currentNode->color = BLACK;
+	if (currentNode) currentNode->color = BLACK;
 }
 
 void BlackRedTreeForFreeList::rotation(NodeForFreeList* node, const BRTRotationDirection rotation) {
@@ -192,13 +180,14 @@ void BlackRedTreeForFreeList::rotation(NodeForFreeList* node, const BRTRotationD
 		node->parent->childs[nodePosition] = secondNode;
 	}
 
+	secondNode->childs[rotation] = node;
 	node->parent = secondNode;
-	secondNode->childs[rotation] = node;
-	secondNode->childs[rotation] = node;
 }
 
 void BlackRedTreeForFreeList::normalRemove(NodeForFreeList* node) {
-	NodeForFreeList* replaceNode = node;
+	NodeForFreeList* replaceNode = nullptr;
+	NodeForFreeList* replaceNodeRightChild = nullptr;
+	NodeColor originalReplaceNodeColor = node->color;
 	NodePosition nodePosition;
 	NodePosition currentNodePosition;
 
@@ -207,50 +196,47 @@ void BlackRedTreeForFreeList::normalRemove(NodeForFreeList* node) {
 	case 2:
 		replaceNode = node->childs[RIGHT];
 		while (replaceNode->childs[LEFT] != nullptr) replaceNode = replaceNode->childs[LEFT];
+		originalReplaceNodeColor = replaceNode->color;
+		replaceNodeRightChild = replaceNode->childs[RIGHT];
+
 
 		currentNodePosition = (NodePosition)(replaceNode->parent == node);
-		if (replaceNode->childs[RIGHT] != nullptr) {
-			replaceNode->parent->childs[currentNodePosition] = replaceNode->childs[RIGHT];
-			replaceNode->childs[RIGHT]->parent = replaceNode->parent;
+		if (replaceNodeRightChild != nullptr) {
+			replaceNode->parent->childs[currentNodePosition] = replaceNodeRightChild;
+			replaceNodeRightChild->parent = replaceNode->parent;
 		}
 
 		node->childs[LEFT]->parent = replaceNode;
 		node->childs[RIGHT]->parent = replaceNode;
-		replaceNode->childs[LEFT] = node->childs[LEFT] != replaceNode ? node->childs[LEFT] : nullptr;
-		replaceNode->childs[RIGHT] = node->childs[RIGHT] != replaceNode ? node->childs[RIGHT] : nullptr;
-
+		replaceNode->childs[LEFT] = node->childs[LEFT];
+		replaceNode->childs[RIGHT] = node->childs[RIGHT];
+		replaceNode->color = node->color;
 		replaceNode->parent = node->parent;
 		if (node->parent == nullptr) {
 			_root = replaceNode;
 			break;
 		}
-
-		node->parent->childs[node->parent->getNodePosition(node)] = replaceNode;
+		nodePosition = node->parent->getNodePosition(node);
+		node->parent->childs[nodePosition] = replaceNode;
 		break;
 	case 1:
 
 		replaceNode = node->childs[node->childs[LEFT] == nullptr];
+		replaceNodeRightChild = replaceNode;
 		replaceNode->parent = node->parent;
 
+	default:
 		if (node->parent == nullptr) {
 			_root = replaceNode;
 			break;
 		}
-
 		nodePosition = node->parent->getNodePosition(node);
 		node->parent->childs[nodePosition] = replaceNode;
 		break;
-	default:
-		if (node->parent == nullptr) {
-			_root = nullptr;
-			break;
-		}
-		nodePosition = node->parent->getNodePosition(node);
-		node->parent->childs[nodePosition] = nullptr;
-		break;
 	}
 
-	if (node->color == BLACK) fixRemoveViolation(replaceNode);
+	if (replaceNodeRightChild != nullptr && originalReplaceNodeColor == BLACK) fixRemoveViolation(replaceNodeRightChild);
+	delete node;
 }
 
 BlackRedTreeForFreeList::BlackRedTreeForFreeList(const void* startPtr, const size_t& size) {
@@ -265,7 +251,7 @@ NodeForFreeList* BlackRedTreeForFreeList::insert(const size_t& size) {
 	//binary inserction/search
 
 	while (currentNode != nullptr && !(*currentNode >= size && currentNode->isFree)) {
-		currentNodePosition = (NodePosition)(*currentNode >= size);
+		currentNodePosition = (NodePosition)(size >= currentNode->getData());
 		currentNode = currentNode->childs[currentNodePosition];
 	}
 
@@ -276,6 +262,7 @@ NodeForFreeList* BlackRedTreeForFreeList::insert(const size_t& size) {
 	split(currentNode, size);
 
 	currentNode->isFree = false;
+	return currentNode;
 
 }
 
@@ -325,7 +312,7 @@ FreeList::~FreeList() {
 void* FreeList::Allocate(size_t dataSize) {
 	NodeForFreeList* node = _rbTree->insert(dataSize);
 	if (node != nullptr) {
-		void* ptr = std::get<void*>(node->getTuple());
+		void* ptr = node->getOtherData();
 		_secondTree->insert(ptr, node);
 		return ptr;
 	}
@@ -338,7 +325,9 @@ bool FreeList::Deallocate(void* ptr) {
 	if (ptr > maxPtr || ptr < _ptr) return false;
 
 
-	NodeForFreeList* node = std::get< NodeForFreeList*>(_secondTree->remove(ptr));
+	NodeForFreeList* node = _secondTree->remove(ptr);
+
+	if (node == nullptr) return false;
 
 	return _rbTree->remove(node);
 }

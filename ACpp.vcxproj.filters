@@ -27,25 +27,7 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RedBlackTree2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RedBlackTree2.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="FreeList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SecondTree.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SecondTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BRTreeNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RedBlackTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

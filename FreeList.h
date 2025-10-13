@@ -10,7 +10,7 @@ struct NodeForFreeList : public TNode<size_t, void*> {
 	NodeForFreeList(const size_t& dataToSort, const void* ptr);
 
 
-	NodeForFreeList* parent;
+	NodeForFreeList* parent = nullptr;
 	NodeForFreeList* childs[2] = { nullptr, nullptr };
 
 	NodeForFreeList* getSibling(const NodeForFreeList* node) const;
@@ -27,12 +27,18 @@ struct NodeForFreeList : public TNode<size_t, void*> {
 
 	void split(NodeForFreeList* rightNode);
 
+	bool operator >= (const NodeForFreeList* node) const;
+
+	bool operator >= (const size_t& data) const;
+
+
 };
 
 struct BlackRedTreeForFreeList;
 
 template<> class TRedBlackTree<NodeForFreeList, void*> {
 	NodeForFreeList* _root = nullptr;
+
 	friend struct BlackRedTreeForFreeList;
 };
 

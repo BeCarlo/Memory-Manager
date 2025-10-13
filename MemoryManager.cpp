@@ -11,7 +11,8 @@ void* my_allocate(std::size_t size) {
 
 	if (size > SMALL_OBJECT_SIZE) {
 
-		if (void* ptr = freeList.Allocate(size)) return ptr;
+		if (void* ptr = freeList.Allocate(size))
+			return ptr;
 
 		throw std::exception("bad allocation", 1);
 	}

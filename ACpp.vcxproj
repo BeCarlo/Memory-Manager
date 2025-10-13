@@ -45,6 +45,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -104,7 +105,10 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>Default</ConformanceMode>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <LanguageStandard>Default</LanguageStandard>
+      <BasicRuntimeChecks />
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,18 +134,12 @@
   <ItemGroup>
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="FreeList.h" />
-    <ClCompile Include="BRTreeNode.cpp" />
-    <ClCompile Include="RedBlackTree.cpp" />
-    <ClCompile Include="RedBlackTree2.cpp" />
-    <ClCompile Include="SecondTree.cpp" />
-    <ClCompile Include="SecondTree.h" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="SmallObjectAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MemoryManager.h" />
-    <ClCompile Include="RedBlackTree2.h" />
     <ClInclude Include="BRTreeNode.h" />
     <ClInclude Include="RedBlackTree.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
