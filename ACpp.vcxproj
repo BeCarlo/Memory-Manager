@@ -134,7 +134,7 @@
   <ItemGroup>
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="FreeList.h" />
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="SmallObjectAllocator.cpp" />
   </ItemGroup>

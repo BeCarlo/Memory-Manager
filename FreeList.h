@@ -15,6 +15,10 @@ struct NodeForFreeList : public TNode<size_t, void*> {
 
 	NodeForFreeList* getSibling(const NodeForFreeList* node) const;
 
+	NodePosition getNodePosition(const NodeForFreeList* node) const {
+		return (NodePosition)(childs[RIGHT] != nullptr && node == childs[RIGHT]);
+	}
+
 	typedef NodePosition Direction;
 
 	NodeForFreeList* listNode[2] = { nullptr, nullptr };

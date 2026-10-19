@@ -80,11 +80,9 @@ __forceinline TNode<TypeToSort, OtherType>* TRedBlackTree<TypeToSort, OtherType>
 
 	while (currentNode != nullptr) {
 
-		if (currentNode == data) return currentNode;
-		if (!currentNode->hasChilds())
-			return nullptr;
+		if (currentNode->getData() == data) return currentNode;
 
-		NodePosition currentNodePosition = (NodePosition)(data >= currentNode);
+		NodePosition currentNodePosition = (NodePosition)(data >= currentNode->getData());
 		currentNode = currentNode->childs[currentNodePosition];
 	}
 
@@ -93,64 +91,96 @@ __forceinline TNode<TypeToSort, OtherType>* TRedBlackTree<TypeToSort, OtherType>
 
 template<typename TypeToSort, typename OtherType>
 __forceinline OtherType TRedBlackTree<TypeToSort, OtherType>::remove(const TypeToSort data) {
-	TNode<TypeToSort, OtherType>* node = search(data);
-	if (node == nullptr) return OtherType();
-	TNode<TypeToSort, OtherType>* replaceNode = nullptr;
-	TNode<TypeToSort, OtherType>* replaceNodeRightChild = nullptr;
-	NodeColor originalReplaceNodeColor = node->color;
-	NodePosition nodePosition;
-	NodePosition currentNodePosition;
+	typedef TNode<TypeToSort, OtherType> Node;
 
-	//BST remove
-	switch (node->howManyChilds()) {
-	case 2:
-		replaceNode = node->childs[RIGHT];
-		while (replaceNode->childs[LEFT] != nullptr) replaceNode = replaceNode->childs[LEFT];
-		originalReplaceNodeColor = replaceNode->color;
-		replaceNodeRightChild = replaceNode->childs[RIGHT];
+	Node* z = search(data);
+	if (z == nullptr) return OtherType();
+	const OtherType returnData = z->getOtherData();
 
+	auto transplant = [this](Node* u, Node* v) {
+		if (u->parent == nullptr) _root = v;
+		else u->parent->childs[u->parent->getNodePosition(u)] = v;
+		if (v != nullptr) v->parent = u->parent;
+	};
 
-		currentNodePosition = (NodePosition)(replaceNode->parent == node);
-		if (replaceNodeRightChild != nullptr) {
-			replaceNode->parent->childs[currentNodePosition] = replaceNodeRightChild;
-			replaceNodeRightChild->parent = replaceNode->parent;
+	Node* y = z;
+	NodeColor yOriginalColor = y->color;
+	Node* x = nullptr;
+	Node* xParent = nullptr;
+
+	if (z->childs[LEFT] == nullptr) {
+		x = z->childs[RIGHT];
+		xParent = z->parent;
+		transplant(z, z->childs[RIGHT]);
+	}
+	else if (z->childs[RIGHT] == nullptr) {
+		x = z->childs[LEFT];
+		xParent = z->parent;
+		transplant(z, z->childs[LEFT]);
+	}
+	else {
+		y = z->childs[RIGHT];
+		while (y->childs[LEFT] != nullptr) y = y->childs[LEFT];
+		yOriginalColor = y->color;
+		x = y->childs[RIGHT];
+		if (y->parent == z) {
+			xParent = y;
 		}
-
-		node->childs[LEFT]->parent = replaceNode;
-		node->childs[RIGHT]->parent = replaceNode;
-		replaceNode->childs[LEFT] = node->childs[LEFT];
-		replaceNode->childs[RIGHT] = node->childs[RIGHT];
-		replaceNode->color = node->color;
-		replaceNode->parent = node->parent;
-		if (node->parent == nullptr) {
-			_root = replaceNode;
-			break;
+		else {
+			xParent = y->parent;
+			transplant(y, y->childs[RIGHT]);
+			y->childs[RIGHT] = z->childs[RIGHT];
+			y->childs[RIGHT]->parent = y;
 		}
-		nodePosition = node->parent->getNodePosition(node);
-		node->parent->childs[nodePosition] = replaceNode;
-		break;
-	case 1:
-
-		replaceNode = node->childs[node->childs[LEFT] == nullptr];
-		replaceNodeRightChild = replaceNode;
-		replaceNode->parent = node->parent;
-
-	default:
-		if (node->parent == nullptr) {
-			_root = replaceNode;
-			break;
-		}
-		nodePosition = node->parent->getNodePosition(node);
-		node->parent->childs[nodePosition] = replaceNode;
-		break;
+		transplant(z, y);
+		y->childs[LEFT] = z->childs[LEFT];
+		y->childs[LEFT]->parent = y;
+		y->color = z->color;
 	}
 
-	if (replaceNodeRightChild != nullptr && originalReplaceNodeColor == BLACK) fixRemoveViolation(replaceNodeRightChild);
-	const OtherType returnData = node->getOtherData();
-	node->childs[LEFT] = nullptr;
-	node->childs[RIGHT] = nullptr;
-	node->parent = nullptr;
-	delete node;
+	delete z;
+
+	if (yOriginalColor == BLACK) {
+		Node* node = x;
+		Node* parent = xParent;
+		while (node != _root && (node == nullptr || node->color == BLACK)) {
+			NodePosition dir = (parent->childs[LEFT] == node) ? LEFT : RIGHT;
+			NodePosition other = (NodePosition)(dir == LEFT ? RIGHT : LEFT);
+			Node* w = parent->childs[other];
+
+			if (w->color == RED) {
+				w->color = BLACK;
+				parent->color = RED;
+				rotation(parent, (BRTRotationDirection)dir);
+				w = parent->childs[other];
+			}
+
+			bool wDirBlack = (w->childs[dir] == nullptr || w->childs[dir]->color == BLACK);
+			bool wOtherBlack = (w->childs[other] == nullptr || w->childs[other]->color == BLACK);
+
+			if (wDirBlack && wOtherBlack) {
+				w->color = RED;
+				node = parent;
+				parent = node->parent;
+			}
+			else {
+				if (wOtherBlack) {
+					if (w->childs[dir] != nullptr) w->childs[dir]->color = BLACK;
+					w->color = RED;
+					rotation(w, (BRTRotationDirection)other);
+					w = parent->childs[other];
+				}
+				w->color = parent->color;
+				parent->color = BLACK;
+				if (w->childs[other] != nullptr) w->childs[other]->color = BLACK;
+				rotation(parent, (BRTRotationDirection)dir);
+				node = _root;
+				parent = nullptr;
+			}
+		}
+		if (node != nullptr) node->color = BLACK;
+	}
+
 	return returnData;
 }
 
@@ -260,54 +290,9 @@ __forceinline void TRedBlackTree<TypeToSort, OtherType>::fixRemoveViolation(TNod
 	if (currentNode) currentNode->color = BLACK;
 }
 
-/*template<typename TypeToSort, typename OtherType>
-__forceinline void TRedBlackTree<TypeToSort, OtherType>::fixRemoveViolation(TNode<TypeToSort, OtherType>* node) {
-	assert(nullptr != node);
-
-	TNode<TypeToSort, OtherType>* currentNode = node;
-	while (currentNode != nullptr && currentNode->parent != nullptr && currentNode->color == BLACK) {
-		NodePosition currentNodePosition = currentNode->parent->getNodePosition(currentNode);
-		NodePosition oppositePosition = (NodePosition)(currentNodePosition == LEFT);
-		TNode<TypeToSort, OtherType>* curretNodeSibling = currentNode->parent->childs[oppositePosition];
-
-		if (curretNodeSibling->color == RED) {
-			curretNodeSibling->color = BLACK;
-			currentNode->parent->color = RED;
-			rotation(currentNode->parent, (BRTRotationDirection)currentNodePosition);
-			curretNodeSibling = currentNode->parent->childs[oppositePosition];
-		}
-
-		bool isLeftChildBlack = curretNodeSibling->childs[LEFT] == nullptr || curretNodeSibling->childs[LEFT]->color == BLACK;
-		bool isRightChildBlack = curretNodeSibling->childs[RIGHT] == nullptr || curretNodeSibling->childs[RIGHT]->color == BLACK;
-		if (isLeftChildBlack && isRightChildBlack) {
-			curretNodeSibling->color = RED;
-			currentNode = currentNode->parent;
-			continue;
-		}
-
-		if (curretNodeSibling->childs[oppositePosition] == nullptr ||
-			curretNodeSibling->childs[oppositePosition]->color == BLACK) {
-
-			if (curretNodeSibling->childs[currentNodePosition] != nullptr)
-				curretNodeSibling->childs[currentNodePosition]->color = BLACK;
-
-			curretNodeSibling->color = RED;
-			rotation(curretNodeSibling, (BRTRotationDirection)oppositePosition);
-			curretNodeSibling = currentNode->parent->childs[oppositePosition];
-		}
-
-		curretNodeSibling->color = currentNode->parent->color;
-		currentNode->parent->color = BLACK;
-		if (curretNodeSibling->childs[oppositePosition] != nullptr)
-			curretNodeSibling->childs[oppositePosition]->color = BLACK;
-		rotation(currentNode->parent, (BRTRotationDirection)currentNodePosition);
-		currentNode = _root;
-	}
-	if (currentNode != nullptr) currentNode->color = BLACK;
-}*/
-
 template<typename TypeToSort, typename OtherType>
 __forceinline void TRedBlackTree<TypeToSort, OtherType>::deleteAll(TNode<TypeToSort, OtherType>* node) {
+	if (node == nullptr) return;
 	if (node->childs[LEFT] != nullptr) deleteAll(node->childs[LEFT]);
 	if (node->childs[RIGHT] != nullptr) deleteAll(node->childs[RIGHT]);
 	delete node;

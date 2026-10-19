@@ -12,13 +12,13 @@ void* my_allocate(size_t _size);
 void my_deallocate(void* ptr);
 
 
-struct CustomMenoryManager {
+struct CustomMemoryManager {
 	void* operator new(size_t sz);
 	void* operator new[](size_t sz);
 	void operator delete(void* ptr);
 	void operator delete[](void* ptr);
 };
 
-#define CUSTOMMEMORY : public CustomMenoryManager
+#define CUSTOM_MEMORY : public CustomMemoryManager
 
 #endif // !MEMORY_MANAGER_H
